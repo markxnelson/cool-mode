@@ -90,8 +90,7 @@
 
 (defvar cool-mode-syntax-table
   (let ((st (make-syntax-table)))
-    (modify-syntax-entry ?/ ". 124b" st)
-    (modify-syntax-entry ?* ". 23" st)
+    (modify-syntax-entry ?- ". 12b" st)
     (modify-syntax-entry ?\n "> b" st)
     st)
   "Syntax table for cool-mode")

@@ -1,4 +1,4 @@
-; cool.el --- COOL mode
+;; cool.el --- COOL mode
 
 ;; Copyright (C) 2014  Mark Nelson
 
@@ -21,11 +21,11 @@
 ;; Boston, MA 02111-1307, USA.
 
 
-; provide a hook so users can run their own code when this mode is run
+;; provide a hook so users can run their own code when this mode is run
 
 (defvar cool-mode-hook nil)
 
-; create keymap
+;; create keymap
 
 (defvar cool-mode-map
   (let ((map (make-sparse-keymap)))
@@ -33,11 +33,11 @@
     map)
   "Keymap for COOL mode")
 
-; autoload
+;; autoload
 
 (add-to-list 'auto-mode-alist '("\\.cl\\'" . cool-mode))
 
-; syntax highlighting
+;; syntax highlighting
 
 (defconst cool-font-lock-keywords-1
   (list
@@ -49,44 +49,58 @@
   "Syntax highlighting for COOL mode")
 
 
-; indentation
+;; indentation
 
 (defun cool-indent-line ()
   "Indent current line as COOL code"
   (interactive)
   (beginning-of-line)
-  (if (bobp) ; start of buffer
+  (if (bobp) ;; start of buffer
       (indent-line-to 0)
     (let ((not-indented t) cur-indent)
-      (if (looking-at ".*\\(}\\|};\\|fi\\|pool\\|esac\\)[ \t]*$") ; end of block
+      ;; end of block without start of block on same line
+      (if (looking-at "^\\(?:[^{]\\)*\\(}\\|};\\|fi\\|pool\\|esac\\)[ \t]*$") 
 	  (progn
-	    (save-excursion
+	    (setq cur-indent (current-indentation))
+	    (setq not-indented nil))
+	;; end of block keyword on its own line ...
+	(if (looking-at "^[ \t]*\\(fi\\|pool\\|esac\\)[ \t]*$") 
+	    (progn
+	      (save-excursion
+		(forward-line -1)
+		(setq cur-indent (- (current-indentation) default-tab-width)))
+	      (if (< cur-indent 0)
+		  (setq cur-indent 0)))
+	  (save-excursion
+	    (while not-indented
 	      (forward-line -1)
-	      (setq cur-indent (- (current-indentation) default-tab-width)))
-	    (if (< cur-indent 0)
-		(setq cur-indent 0)))
-	(save-excursion
-	  (while not-indented
-	    (forward-line -1)
-	    (if (looking-at ".*\\(}\\|};\\|fi\\|pool\\|esac\\)[ \t]*$")
-		(progn
-		  (setq cur-indent (current-indentation))
-		  (setq not-indented nil))
-	      (if (looking-at ".*{[ \t]*$")
+	      ;; end of block brace without start brace on same line
+	      (if (looking-at "^\\(?:[^{]\\)*\\(}\\|};\\)[ \t]*$")
 		  (progn
-		    (setq cur-indent (+ (current-indentation) default-tab-width))
+		    (setq cur-indent (current-indentation))
 		    (setq not-indented nil))
-		(if (looking-at "^[ \t]*\\(if\\|case\\|while\\|let\\)")
+		;; end of block ...
+		(if (looking-at "[ \t]*\\(}\\|};\\)[ \t]*$") 
 		    (progn
-		      (setq cur-indent (+ (current-indentation) default-tab-width))
+		      (setq cur-indent (current-indentation))
 		      (setq not-indented nil))
-		  (if (bobp)
-		      (setq not-indented nil))))))))
+		  ;; open brace followed by whitespace
+		  (if (looking-at ".*{[ \t]*$")
+		      (progn
+			(setq cur-indent (+ (current-indentation) default-tab-width))
+			(setq not-indented nil))
+		    ;; open block 
+		    (if (looking-at "^[ \t]*\\(if\\|case\\|while\\|let\\)")
+			(progn
+			  (setq cur-indent (+ (current-indentation) default-tab-width))
+			  (setq not-indented nil))
+		      (if (bobp)
+			  (setq not-indented nil))))))))))
       (if cur-indent
 	  (indent-line-to cur-indent)
 	(indent-line-to 0)))))
 
-; syntax
+;; syntax
 
 (defvar cool-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -98,7 +112,7 @@
     st)
   "Syntax table for cool-mode")
 
-; entry
+;; entry
 
 (defun cool-mode ()
   "Major mode for editing COOL program files"
@@ -110,6 +124,7 @@
   (set (make-local-variable 'indent-line-function) 'cool-indent-line)
   (setq major-mode 'cool-mode)
   (setq mode-name "COOL")
+  (setq default-tab-width 2)
   (run-hooks 'cool-mode-hook))
 
 (provide 'cool-mode)

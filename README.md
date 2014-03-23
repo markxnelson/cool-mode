@@ -3,7 +3,7 @@ cool-mode
 
 Emacs mode for COOL programming language
 
-This is a preliminary attempt at a major mode for COOL.
+This is a preliminary attempt at a major mode for COOL.  Indentation is not working perfectly yet.
 
 
 # HOW TO USE
